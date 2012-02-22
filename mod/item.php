@@ -753,7 +753,9 @@ function item_post(&$a) {
 					'source_link'  => $datarray['author-link'],
 					'source_photo' => $datarray['author-avatar'],
 					'verb'         => ACTIVITY_POST,
-					'otype'        => 'item'
+					'otype'        => 'item',
+					'id'		=> $post_id,
+					'parent_id'	=> $parent,
 				));
 			
 			}

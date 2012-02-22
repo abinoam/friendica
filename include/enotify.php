@@ -37,7 +37,7 @@ function notification($params) {
 
 	if($params['type'] == NOTIFY_COMMENT) {
 
-		$subject = sprintf( t('%s commented on an item at %s'), $params['source_name'], $sitename);
+		$subject = sprintf( t('%s - Someone commented on item #%d'), $sitename, $params[parent_id]);
 		$preamble = sprintf( t('%s commented on an item/conversation you have been following.'), $params['source_name']); 
 		$epreamble = sprintf( t('%s commented on %s you have been following.'), '[url=' . $params['source_link'] . ']' . $params['source_name'] . '[/url]', '[url=' . $params['link'] . ']' . t('an item/conversation') . '[/url]'); 
 
@@ -186,7 +186,7 @@ function notification($params) {
 			'$thanks'       => $thanks,
 			'$site_admin'   => $site_admin,
 			'$title'		=> stripslashes($title),
-			'$htmlversion'	=> $htmlversion,	
+			'$htmlversion'	=> $htmlversion,
 		));
 		
 		// load the template for private message notifications
@@ -206,10 +206,15 @@ function notification($params) {
 			'$thanks'       => $thanks,
 			'$site_admin'   => $site_admin,
 			'$title'		=> stripslashes($title),
-			'$textversion'	=> $textversion,	
+			'$textversion'	=> $textversion,
 		));
 
-//		logger('text: ' . $email_text_body);
+		logger('text: ' . $email_text_body);
+		ob_start();
+		var_dump($params);
+		$vd = ob_get_clean();
+		
+ 		logger('$params on enotify: ' . $vd);
 
 		// use the EmailNotification library to send the message
 
@@ -220,7 +225,10 @@ function notification($params) {
 			'toEmail' => $params['to_email'],
 			'messageSubject' => $subject,
 			'htmlVersion' => $email_html_body,
-			'textVersion' => $email_text_body
+			'textVersion' => $email_text_body,
+			'id'		=> $params['id'],
+			'parent_id'	=> $params['parent_id'],	
+			'siteurl'	=> $siteurl,
 		));
 	}
 
@@ -241,12 +249,18 @@ class enotify {
 	 * @param messageSubject	subject of the message
 	 * @param htmlVersion		html version of the message
 	 * @param textVersion		text only version of the message
+	 * @param id			unique message id
+	 * @param parent_id		unique parent message id (used for threading)
+	 * @param siteurl		where you are at(@).
 	 */
 	static public function send($params) {
 
 		$fromName = email_header_encode($params['fromName'],'UTF-8'); 
 		$messageSubject = email_header_encode($params['messageSubject'],'UTF-8');
 		
+		$a = get_app();
+		$hostname = $a->get_hostname();
+
 		// generate a mime boundary
 		$mimeBoundary   =rand(0,9)."-"
 				.rand(10000000000,9999999999)."-"
@@ -255,7 +269,11 @@ class enotify {
 
 		// generate a multipart/alternative message header
 		$messageHeader =
-			"From: {$params['fromName']} <{$params['fromEmail']}>\n" . 
+			"In-Reply-To: <{$params['parent_id']}@{$hostname}>\n" .
+			"References:  <{$params['parent_id']}@{$hostname}>\n" .
+			"Message-Id: <{$params['id']}@{$hostname}>\n" .
+//			"From: {$params['fromName']} <{$params['fromEmail']}>\n" . 
+			"From: abinoam@tl1n.com\n" . 
 			"Reply-To: {$params['fromName']} <{$params['replyTo']}>\n" .
 			"MIME-Version: 1.0\n" .
 			"Content-Type: multipart/alternative; boundary=\"{$mimeBoundary}\"";
@@ -275,6 +293,8 @@ class enotify {
 			"--" . $mimeBoundary . "--\n";					// message ending
 
 		// send the message
+		logger("notification: invoking mail with " . $params['toEmail'] . " - " . $params['messageSubject'] . " - " . 
+$messageHeader);
 		$res = mail(
 			$params['toEmail'],	 									// send to address
 			$params['messageSubject'],								// subject

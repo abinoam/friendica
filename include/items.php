@@ -2187,7 +2187,9 @@ function local_delivery($importer,$data) {
 								'source_photo' => ((link_compare($datarray['author-link'],$importer['url'])) 
 									? $importer['thumb'] : $datarray['author-avatar']),
 								'verb'         => ACTIVITY_POST,
-								'otype'        => 'item'
+								'otype'        => 'item',
+								'id'		=> $posted_id,
+								'parent_id'	=> $parent,
 
 							));
 
@@ -2309,7 +2311,9 @@ function local_delivery($importer,$data) {
 								'source_photo' => ((link_compare($datarray['author-link'],$importer['url'])) 
 									? $importer['thumb'] : $datarray['author-avatar']),
 								'verb'         => ACTIVITY_POST,
-								'otype'        => 'item'
+								'otype'        => 'item',
+								'id'		=> $posted_id,
+								'parent_id'	=> $parent,
 
 							));
 
