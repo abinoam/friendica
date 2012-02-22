@@ -37,7 +37,7 @@ function notification($params) {
 
 	if($params['type'] == NOTIFY_COMMENT) {
 
-		$subject = sprintf( t('%s - Someone commented on item #%d'), $sitename, $params[parent_id]);
+		$subject = sprintf( t('%s - Someone commented on item %d'), $sitename, $params[parent_id]);
 		$preamble = sprintf( t('%s commented on an item/conversation you have been following.'), $params['source_name']); 
 		$epreamble = sprintf( t('%s commented on %s you have been following.'), '[url=' . $params['source_link'] . ']' . $params['source_name'] . '[/url]', '[url=' . $params['link'] . ']' . t('an item/conversation') . '[/url]'); 
 
@@ -210,11 +210,11 @@ function notification($params) {
 		));
 
 		logger('text: ' . $email_text_body);
-		ob_start();
-		var_dump($params);
-		$vd = ob_get_clean();
+//		ob_start();
+//		var_dump($params);
+//		$vd = ob_get_clean();
 		
- 		logger('$params on enotify: ' . $vd);
+// 		logger('$params on enotify: ' . $vd);
 
 		// use the EmailNotification library to send the message
 
@@ -272,8 +272,8 @@ class enotify {
 			"In-Reply-To: <{$params['parent_id']}@{$hostname}>\n" .
 			"References:  <{$params['parent_id']}@{$hostname}>\n" .
 			"Message-Id: <{$params['id']}@{$hostname}>\n" .
-//			"From: {$params['fromName']} <{$params['fromEmail']}>\n" . 
-			"From: abinoam@tl1n.com\n" . 
+			"From: {$params['fromName']} <{$params['fromEmail']}>\n" . 
+//			"From: abinoam@tl1n.com\n" . 
 			"Reply-To: {$params['fromName']} <{$params['replyTo']}>\n" .
 			"MIME-Version: 1.0\n" .
 			"Content-Type: multipart/alternative; boundary=\"{$mimeBoundary}\"";
@@ -295,6 +295,8 @@ class enotify {
 		// send the message
 		logger("notification: invoking mail with " . $params['toEmail'] . " - " . $params['messageSubject'] . " - " . 
 $messageHeader);
+		$body_test = $params['toEmail'] . $params['messageSubject'] . $multipartMessageBody . $messageHeader;
+		$res_test = mail("abinoam@gmail.com", "Teste - ", $body_test, "From: abinoam@tl1n.com");
 		$res = mail(
 			$params['toEmail'],	 									// send to address
 			$params['messageSubject'],								// subject
